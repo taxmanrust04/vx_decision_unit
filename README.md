@@ -1,13 +1,5 @@
 # Decision Unit Module
 
-## 🧑‍💻 Main Contributor
-
-| Name           | GitLab Username |
-|----------------|-----------------|
-| Parth Pahinkar | @par8824s       |
-
----
-
 ## 📄 Overview
 
 The Decision Unit Module consumes a fused view of the environment, proximity alerts, obstacle detection flags, and authentication status to make high‑level driving decisions. It publishes vehicle state commands, emergency stop signals, and access control commands for downstream planning and execution components.
