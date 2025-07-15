@@ -21,7 +21,7 @@ The Decision Unit Module consumes a fused view of the environment, proximity ale
 ```mermaid
 graph LR
   subgraph Inputs
-    FS["Sensor Fusion<br/>(/fused_msgs/EnvironmentState)"]
+    FS["Sensor data Fusion<br/>(/fused_msgs/EnvironmentState)"]
     IR["IR Sensor<br/>(/ir/proximity_alert: sensor_msgs/Range)"]
     OB["Obstacle Detector<br/>(/obstacle_detected: std_msgs/Bool)"]
     AU["Auth Module<br/>(/auth_status: std_msgs/Bool)"]
