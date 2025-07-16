@@ -29,14 +29,14 @@ Based on these inputs, the node publishes:
 
 ```mermaid
 graph LR
-    FS["/fused_msgs/boarding_zone_safe"] -->|"std_msgs/Bool"| DU["Decision Unit Node"]
-    OB["/obstacle_detected"] -->|"std_msgs/Bool"| DU
-    AU["/auth_status"] -->|"std_msgs/Bool"| DU
-    SR["/stop_request"] -->|"std_msgs/Bool"| DU
+    FS["/fused_msgs/boarding_zone_safe"] -->|std_msgs/Bool| DU["Decision Unit Node"]
+    OB["/obstacle_detected"] -->|std_msgs/Bool| DU
+    AU["/auth_status"] -->|std_msgs/Bool| DU
+    SR["/stop_request"] -->|std_msgs/Bool| DU
 
-    DU -->|"/vehicle_state"| VS["std_msgs/Bool"]
-    DU -->|"/emergency_stop"| ES["std_msgs/Bool"]
-    DU -->|"/access_command"| AC["std_msgs/UInt8"]
+    DU -->|std_msgs/Bool| VS["/vehicle_state"]
+    DU -->|std_msgs/Bool| ES["/emergency_stop"]
+    DU -->|std_msgs/UInt8| AC["/access_command"]
 
     %% Styling
     classDef redRounded fill:#ff4d4d,stroke:#333,stroke-width:2px,rx:20,ry:20,color:#fff
@@ -52,12 +52,12 @@ graph LR
 
 #### Input
 
-| Name                          | Type                   | Description                                                                 |
-|-------------------------------|------------------------|-----------------------------------------------------------------------------|
+| Name                             | Type                   | Description                                                                 |
+|----------------------------------|------------------------|-----------------------------------------------------------------------------|
 | `/fused_msgs/boarding_zone_safe` | `std_msgs/Bool.msg`     | Indicates whether the shuttle is in a safe boarding zone (from fusion module). |
-| `/obstacle_detected`          | `std_msgs/Bool.msg`     | Obstacle presence flag from the obstacle detection unit.                    |
-| `/auth_status`                | `std_msgs/Bool.msg`     | Boolean status indicating whether user is authorized to proceed.            |
-| `/stop_request`               | `std_msgs/Bool.msg`     | A direct stop request signal from the server.                               |
+| `/obstacle_detected`             | `std_msgs/Bool.msg`     | Obstacle presence flag from the obstacle detection unit.                    |
+| `/auth_status`                   | `std_msgs/Bool.msg`     | Boolean status indicating whether user is authorized to proceed.            |
+| `/stop_request`                  | `std_msgs/Bool.msg`     | A direct stop request signal from the server.                               |
 
 #### Output
 
