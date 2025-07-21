@@ -25,11 +25,8 @@ It ensures the shuttle responds appropriately to dynamic environment changes and
 
 ## 🏗️ Component Architecture
 
-> 📷 *Insert image of the Decision Unit architecture diagram here*  
-> Example:
-> ```
-> ![Decision Unit Architecture](resource/decision_unit_arch.png)
-> ```
+ ![Decision Unit Architecture](resource/decision_unit_arch3.png)
+
 
 ---
 
