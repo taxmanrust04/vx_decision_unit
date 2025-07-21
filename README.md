@@ -1,75 +1,128 @@
-## Contents
-- [Description](#description)
-- [Architecture](#architecture)
-- [Topics](#topics)
-- [Contributor](#contributor)
+## 👥 Contributors
+
+[Ravikumar Shivlal Savaliya](https://git.hs-coburg.de/ravisavaliya)  
+[Parth Pahinkar](https://git.hs-coburg.de/par8824s)
 
 ---
 
-## Description
-
-The **Decision Unit Module** is responsible for high-level driving decisions based on inputs from the sensor fusion module, obstacle detection, system authentication, and server-issued stop requests. It ensures the shuttle navigates safely by publishing appropriate commands to motion and access controllers.
-
-This node listens to the following input topics:
-
-- `/fused_msgs/boarding_zone_safe`: Boolean message from the **Sensor Data Fusion and Filtering Module** indicating whether the shuttle is currently in a safe boarding zone.
-- `/obstacle_detected`: A Boolean flag from the **Obstacle Detection system** indicating whether an obstacle is present in the path.
-- `/auth_status`: A Boolean flag confirming whether the user is authenticated to access or board the shuttle.
-- `/stop_request`: A Boolean signal from the backend **Server**, requesting the shuttle to stop immediately.
-
-Based on these inputs, the node publishes:
-
-- `/vehicle_state`: A drive or stop command for the **Path Planning** module.
-- `/emergency_stop`: A high-priority stop signal for the **Path Execution** controller in unsafe conditions.
-- `/access_command`: A code used by the **Access Controller** to unlock/lock doors or enable access.
+## 📌 Table of Contents
+- [📖 Overview](#-overview)
+- [🏗️ Component Architecture](#-component-architecture)
+- [🔌 ROS 2 Topics](#-ros-2-topics)
+- [⚙️ Component Functionalities](#️-component-functionalities)
+- [📥 Installation & Setup](#-installation--setup)
+- [🧪 Interface Test Procedure](#-interface-test-procedure)
 
 ---
 
-## Architecture
+## 📖 Overview
 
-```mermaid
-graph LR
-    FS["/fused_msgs/boarding_zone_safe"] -->|std_msgs/Bool| DU["Decision Unit Node"]
-    OB["/obstacle_detected"] -->|std_msgs/Bool| DU
-    AU["/auth_status"] -->|std_msgs/Bool| DU
-    SR["/stop_request"] -->|std_msgs/Bool| DU
+The **Decision Unit Module** is responsible for high-level behavioral decision-making in the autonomous shuttle system. It interprets inputs such as boarding zone status, obstacle flags, authentication status, and remote stop requests, and translates them into actionable commands that affect path planning, execution, and access control.
 
-    DU -->|std_msgs/Bool| VS["/vehicle_state"]
-    DU -->|std_msgs/Bool| ES["/emergency_stop"]
-    DU -->|std_msgs/UInt8| AC["/access_command"]
+It ensures the shuttle responds appropriately to dynamic environment changes and user interactions by publishing commands like vehicle state, emergency stop, and access authorization.
 
-    %% Styling
-    classDef redRounded fill:#ff4d4d,stroke:#333,stroke-width:2px,rx:20,ry:20,color:#fff
-    classDef graySquare fill:#cccccc,stroke:#333333,stroke-width:1px,rx:0,ry:0,color:#000,font-size:12px,text-align:center
+---
 
-    class DU redRounded;
-    class FS,OB,AU,SR,VS,ES,AC graySquare;
+## 🏗️ Component Architecture
+
+ ![Decision Unit Architecture](resource/decision_unit_arch3.png)
+
+
+---
+
+## 🔌 ROS 2 Topics
+
+### Input Topics
+
+| Topic Name                      | Message Type        | Description                                                                      |
+|--------------------------------|---------------------|----------------------------------------------------------------------------------|
+| `/fused_msgs/boarding_zone_safe` | `std_msgs/Bool`     | Whether the shuttle is in a safe boarding zone (from Sensor Fusion).            |
+| `/obstacle_detected`            | `std_msgs/Bool`     | Obstacle presence flag from Obstacle Detection system.                          |
+| `/auth_status`                  | `std_msgs/Bool`     | Indicates if the user is authenticated.                                         |
+| `/stop_request`                 | `std_msgs/Bool`     | Emergency stop signal from the server/backend.                                  |
+
+### Output Topics
+
+| Topic Name         | Message Type        | Description                                                                      |
+|--------------------|---------------------|----------------------------------------------------------------------------------|
+| `/vehicle_state`   | `std_msgs/Bool`     | Drive/Stop signal for the Path Planning module.                                 |
+| `/emergency_stop`  | `std_msgs/Bool`     | Immediate halt signal for Path Execution Controller.                            |
+| `/access_command`  | `std_msgs/UInt8`    | Code sent to Access Controller to lock/unlock or control access.                |
+
+---
+
+## ⚙️ Component Functionalities
+
+The Decision Unit evaluates multiple safety and authorization conditions before allowing the shuttle to proceed. It follows this logic:
+
+- If an obstacle is detected (`/obstacle_detected = true`) or the server requests a halt (`/stop_request = true`), an emergency stop signal is issued.
+- If the user is not authenticated or the shuttle is outside the boarding zone, no access command is granted and motion is disallowed.
+- Only if all safety checks pass, a drive command (`/vehicle_state = true`) is issued and access is granted via `/access_command`.
+
+This ensures that the shuttle operates only when it's safe and authorized to do so.
+
+---
+
+## 📥 Installation & Setup
+
+### 🔧 Clone the Repository
+
+```bash
+git clone https://git.hs-coburg.de/voyagex/vx_decision_unit.git
+```
+
+### 🔨 Build the Package
+
+```bash
+cd vx_decision_unit
+colcon build
+source install/setup.bash
+```
+
+### 🚀 Run the Node
+
+```bash
+ros2 run decision_unit decision_node
 ```
 
 ---
 
-## Topics
+## 🧪 Interface Test Procedure
 
-#### Input
-
-| Name                             | Type                   | Description                                                                 |
-|----------------------------------|------------------------|-----------------------------------------------------------------------------|
-| `/fused_msgs/boarding_zone_safe` | `std_msgs/Bool.msg`     | Indicates whether the shuttle is in a safe boarding zone (from fusion module). |
-| `/obstacle_detected`             | `std_msgs/Bool.msg`     | Obstacle presence flag from the obstacle detection unit.                    |
-| `/auth_status`                   | `std_msgs/Bool.msg`     | Boolean status indicating whether user is authorized to proceed.            |
-| `/stop_request`                  | `std_msgs/Bool.msg`     | A direct stop request signal from the server.                               |
-
-#### Output
-
-| Name                 | Type                 | Description                                                               |
-|----------------------|----------------------|---------------------------------------------------------------------------|
-| `/vehicle_state`     | `std_msgs/Bool.msg`   | Command to Path Planning module — drive (`true`) or stop (`false`).       |
-| `/emergency_stop`    | `std_msgs/Bool.msg`   | Immediate halt signal to Path Execution Controller.                       |
-| `/access_command`    | `std_msgs/UInt8.msg`  | Access control command for boarding system (e.g., lock/unlock).           |
+This section explains how to test the Decision Unit's topic interfaces using dummy publishers in separate terminals.
 
 ---
 
-## Contributor
+### Step-by-Step Test
 
-[Ravikumar Savaliya](https://git.hs-coburg.de/ravisavaliya)  
-[Parth Pahinkar](https://git.hs-coburg.de/par8824s)
+1. **Run the Decision Unit Node**
+   ```bash
+   ros2 run decision_unit decision_node
+   ```
+
+2. **Simulate Sensor Fusion Safe Zone**
+   ```bash
+   ros2 topic pub /fused_msgs/boarding_zone_safe std_msgs/Bool "data: true"
+   ```
+
+3. **Simulate Obstacle Detection**
+   ```bash
+   ros2 topic pub /obstacle_detected std_msgs/Bool "data: false"
+   ```
+
+4. **Simulate Authentication Status**
+   ```bash
+   ros2 topic pub /auth_status std_msgs/Bool "data: true"
+   ```
+
+5. **Simulate Stop Request from Server**
+   ```bash
+   ros2 topic pub /stop_request std_msgs/Bool "data: false"
+   ```
+
+6. **Verify Outputs**
+   ```bash
+   ros2 topic echo /vehicle_state
+   ros2 topic echo /emergency_stop
+   ros2 topic echo /access_command
+   ```
