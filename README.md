@@ -22,7 +22,7 @@
 The **Decision Unit** controls the shuttle's state machine by transitioning between various operational states based on inputs from external systems such as the booking request, goal locations, door status, and more. It ensures that the shuttle progresses through its journey in a systematic manner, from being idle to picking up passengers, dropping them off, and eventually parking. It leverages a finite state machine (FSM) for seamless transitions between these states.
 
 ## Component Architecture
-![Decision Unit FSM Diagram](resource/decision_unit_fsm_diagram.jpeg)  *(This is an optional diagram illustrating the FSM transitions)*
+![Decision Unit FSM Diagram](resource/decision_unit_fsm_diagram.jpeg)  
 
 ## ROS2 Topics
 
