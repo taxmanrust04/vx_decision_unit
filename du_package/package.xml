@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>decision_unit</name>
+  <version>0.1.0</version>
+  <description>
+    Decision Unit implemented using the YASMIN Finite State Machine (FSM) library.
+    This package subscribes to booking, door, goal, and authentication topics,
+    and publishes the current vehicle_state based on defined transition logic.
+  </description>
+
+  <maintainer email="parth.pahinkar@hs-coburg.de">Parth Pahinkar</maintainer>
+  <license>MIT</license>
+
+  <!-- Runtime dependencies -->
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>yasmin</depend>
+  <depend>yasmin_ros</depend>
+  <depend>yasmin_viewer</depend>
+
+  <!-- Testing tools -->
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
+
