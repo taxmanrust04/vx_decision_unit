@@ -9,11 +9,9 @@
 6. [Functionalities](#functionalities)
     - [Finite State Machine (FSM)](#finite-state-machine-fsm)
     - [Transition Logic](#transition-logic)
-    - [Publisher and Subscriber Model](#publisher-and-subscriber-model)
 7. [Dependencies](#dependencies)
 8. [Installation and Setup](#installation-and-setup)
-9. [Interface Test Procedure](#interface-test-procedure)
-10. [Conclusion](#conclusion)
+
 
 ## Maintainer
 - **Parth Pahinkar**
@@ -101,26 +99,26 @@ The FSM transitions between states when the specified conditions are met:
 - Transition from **Deboarding** to **Parking** occurs when the doors are closed after deboarding (`/door_open = False`).
 - Transition from **Parking** to **Idle** occurs when the parking goal is reached (`/goal_reached = True`).
 
-### Publisher and Subscriber Model
-The **Decision Unit** follows a **Publisher-Subscriber** model to communicate with other ROS 2 nodes:
-- **Subscriptions**: The node subscribes to `/booking_request`, `/goal_reached`, and `/door_open`.
-- **Publications**: It publishes the current vehicle state to `/vehicle_state`.
-
 ## Dependencies
 
-1. **Server** – The system that sends booking requests to trigger transitions.
-2. **Motion Executor** – To handle vehicle motion and publish goal reached signals.
-3. **Access Controller** – To handle the door states and whether the shuttle doors are open or closed.
-4. **Transitions Framework** – A Python library to manage the finite state machine (FSM) logic.
+1.[vx_motion_executor](https://git.hs-coburg.de/voyagex/vx_motion_executor)
+
+2.[vx_server](https://git.hs-coburg.de/voyagex/vx_server)
+
+3.[vx_access_controller](https://git.hs-coburg.de/voyagex/vx_access_controller)
 
 ## Installation and Setup
 
 Follow these steps to set up and run the **Decision Unit** node:
 
+
 ```bash
 # Clone the repository
 git clone https://git.hs-coburg.de/voyagex/vx_decision_unit.git
 cd vx_decision_unit
+
+ #Install transitions framework
+ pip3 install transitions
 
 # Clone other dependencies
 # Make sure to clone and run the required dependencies:

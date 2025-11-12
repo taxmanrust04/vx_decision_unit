@@ -13,7 +13,7 @@ from std_msgs.msg import Bool, Int8
 from rclpy.node import Node
 import threading
 
-# Define STATE_CODES at the top
+# Define state codes
 STATE_CODES = {
     'IDLE': 0,
     'DRIVING_TO_PICKUP': 1,
@@ -38,7 +38,7 @@ class DecisionUnit:
 
     def __init__(self, node: Node):
         self.node = node
-        self.finished = False  # flag to stop FSM after final IDLE
+        self.finished = False  # Stop FSM after final IDLE
 
         # Blackboard flags
         self.booking_request = None
@@ -48,14 +48,14 @@ class DecisionUnit:
         self.door_open = None
 
         # Initialize FSM
-        self.machine = GraphMachine(  # Change here
+        self.machine = GraphMachine(
             model=self,
             states=DecisionUnit.states,
             initial='IDLE',
             ignore_invalid_triggers=True
         )
 
-        # ------------------- Transitions -------------------
+        # Define transitions
         self.machine.add_transition('try_transition', 'IDLE', 'DRIVING_TO_PICKUP',
                                     conditions='is_booking_received', after='publish_state')
         self.machine.add_transition('try_transition', 'DRIVING_TO_PICKUP', 'BOARDING',
@@ -63,13 +63,13 @@ class DecisionUnit:
         self.machine.add_transition('try_transition', 'BOARDING', 'DRIVING_TO_DROPOFF',
                                     conditions='is_door_closed_after_boarding', after='publish_state')
         self.machine.add_transition('try_transition', 'DRIVING_TO_DROPOFF', 'DEBOARDING',
-                                    conditions='is_door_closed_after_dropoff', after='publish_state')  # Updated condition here
+                                    conditions='is_door_closed_after_dropoff', after='publish_state')
         self.machine.add_transition('try_transition', 'DEBOARDING', 'PARKING',
                                     conditions='is_door_closed_after_deboarding', after='publish_state')
         self.machine.add_transition('try_transition', 'PARKING', 'IDLE',
                                     conditions='is_goal_reached_for_parking', after='publish_and_stop')
 
-        # Draw the FSM diagram once at startup
+        # Draw FSM diagram
         if HAS_PYGRAPHVIZ:
             try:
                 g = self.machine.get_graph()
@@ -82,59 +82,58 @@ class DecisionUnit:
                 "pygraphviz not installed. Run: sudo apt install graphviz graphviz-dev && pip install pygraphviz"
             )
 
-        # Publish initial IDLE state only once
+        # Publish initial state
         self.publish_state()
 
-    # ------------------- Condition Functions -------------------
     def is_booking_received(self):
+        # Check if booking request received
         return self.booking_request is True
 
     def is_goal_reached_for_pickup(self):
-        """Goal reached for pickup."""
+        # Check if reached pickup goal
         return self.goal_reached_for_pickup
 
     def is_door_closed_after_boarding(self):
-        """Door must be closed after boarding before transitioning to driving to dropoff."""
+        # Check if door closed after boarding
         if self.door_open is False:
-            self.door_open = None  # Reset door status immediately after checking
+            self.door_open = None
             return True
-        self.door_open = None  # Reset door status if condition is not met
+        self.door_open = None
         return False
 
     def is_door_closed_after_dropoff(self):
-        """Door must be closed after dropoff before transitioning to deboarding."""
+        # Check if reached dropoff and door closed
         if self.goal_reached_for_dropoff:
-            self.goal_reached_for_dropoff = None  # Reset flag after usage
-            self.door_open = None  # Reset door status immediately after checking
+            self.goal_reached_for_dropoff = None
+            self.door_open = None
             return True
-        self.door_open = None  # Reset door status if condition is not met
+        self.door_open = None
         return False
 
     def is_door_closed_after_deboarding(self):
-        """Check if doors closed after deboarding."""
+        # Check if doors closed after deboarding
         if self.door_open is False:
-            self.door_open = None  # Reset door status immediately after checking
+            self.door_open = None
             return True
-        self.door_open = None  # Reset door status if condition is not met
+        self.door_open = None
         return False
 
     def is_goal_reached_for_parking(self):
-        """Goal reached for parking."""
+        # Check if parking goal reached
         if self.goal_reached_for_parking:
-            self.goal_reached_for_parking = None  # Reset flag after usage
+            self.goal_reached_for_parking = None
             return True
         return False
 
-    # ------------------- Publisher -------------------
     def publish_state(self):
-        """Publish /vehicle_state when transition actually occurs."""
+        # Publish current FSM state
         code = STATE_CODES[self.state]
         msg = Int8()
         msg.data = code
         self.node.vehicle_state_pub.publish(msg)
         self.node.get_logger().info(f"/vehicle_state = {code} ({self.state})")
 
-        # Live update FSM visualization
+        # Update FSM visualization
         if HAS_PYGRAPHVIZ:
             try:
                 g = self.machine.get_graph()
@@ -143,21 +142,20 @@ class DecisionUnit:
                 pass
 
     def publish_and_stop(self):
-        """Publish IDLE at final transition and stop FSM loop."""
+        # Publish final IDLE and stop FSM
         self.publish_state()
         self.finished = True
         self.node.get_logger().info("FSM reached final IDLE. Stopping state updates.")
 
-    # ------------------- FSM Monitor -------------------
     def monitor(self):
-        """Trigger transition periodically and stop the loop after a final IDLE state."""
+        # Periodically check and trigger transitions
         prev_state = self.state
         while rclpy.ok() and not self.finished:
-            self.try_transition()  # Try transition based on current conditions
+            self.try_transition()
             if self.state != prev_state:
-                self.publish_state()  # Publish state change only if transition occurs
-                prev_state = self.state  # Update the previous state
-            time.sleep(0.5)  # Check every 0.5 seconds
+                self.publish_state()
+                prev_state = self.state
+            time.sleep(0.5)
 
 
 class DecisionUnitNode(Node):
@@ -168,18 +166,19 @@ class DecisionUnitNode(Node):
         self.vehicle_state_pub = self.create_publisher(Int8, '/vehicle_state', 10)
         self.fsm = DecisionUnit(self)
 
+        # Subscriptions
         self.create_subscription(Bool, '/booking_request', self.booking_cb, 10)
         self.create_subscription(Bool, '/goal_reached', self.goal_cb, 10)
         self.create_subscription(Bool, '/door_open', self.door_cb, 10)
 
         self.get_logger().info("Decision Unit FSM (transitions-based) started.")
 
-    # --------------- Callbacks ---------------
     def booking_cb(self, msg):
+        # Handle booking request
         self.fsm.booking_request = msg.data
 
     def goal_cb(self, msg):
-        # Check goal_reached conditions based on the state
+        # Handle goal reached based on current state
         if self.fsm.state == 'DRIVING_TO_PICKUP' and msg.data:
             self.fsm.goal_reached_for_pickup = True
         elif self.fsm.state == 'DRIVING_TO_DROPOFF' and msg.data:
@@ -189,15 +188,16 @@ class DecisionUnitNode(Node):
         self.fsm.goal_reached = msg.data
 
     def door_cb(self, msg):
+        # Handle door state updates
         self.fsm.door_open = msg.data
 
 
-# ------------------- Entry Point -------------------
 def main():
+    # Entry point for ROS node
     rclpy.init()
     node = DecisionUnitNode()
 
-    # Start monitor in a separate thread to avoid blocking the ROS 2 event loop
+    # Start FSM monitor thread
     monitor_thread = threading.Thread(target=node.fsm.monitor)
     monitor_thread.start()
 
