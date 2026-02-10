@@ -5,12 +5,13 @@
 2. [Overview](#overview)
 3. [Component Architecture](#component-architecture)
 4. [ROS2 Topics](#ros2-topics)
-5. [User Stories](#user-stories)
-6. [Functionalities](#functionalities)
+5. [State Diagram](#state-diagram)
+6. [User Stories](#user-stories)
+7. [Functionalities](#functionalities)
     - [Finite State Machine (FSM)](#finite-state-machine-fsm)
     - [Transition Logic](#transition-logic)
-7. [Dependencies](#dependencies)
-8. [Installation and Setup](#installation-and-setup)
+8. [Dependencies](#dependencies)
+9. [Installation and Setup](#installation-and-setup)
 
 
 ## Maintainer
@@ -29,7 +30,11 @@ The **Decision Unit** controls the shuttle's state machine by transitioning betw
 | **Input** | `/booking_request`  | `std_msgs/msg/Bool` | Signals that a booking request has been received. |
 | **Input** | `/goal_reached`     | `std_msgs/msg/Bool` | Indicates whether a specific goal (pickup, dropoff, or parking) has been reached. |
 | **Input** | `/door_open`        | `std_msgs/msg/Bool` | Indicates whether the shuttle doors are open or closed. |
+| **Input** | `/booking_cancelled`| `std_msgs/msg/Bool` | Signals that a booking request has been cancelled |
 | **Output** | `/vehicle_state`   | `std_msgs/msg/Int8` | Publishes the current state of the shuttle (e.g., Idle, Driving to Pickup, Boarding, etc.). |
+
+## State Diagram 
+![State diagram representing the transitions](resource/state_dia.jpg)
 
 ## User Stories
 
@@ -86,12 +91,16 @@ The **Decision Unit** controls the shuttle's state machine by transitioning betw
 ## Functionalities
 
 ### Finite State Machine (FSM)
-The **Decision Unit** is controlled by a **Finite State Machine (FSM)**, which manages the transitions between different operational states of the shuttle:
+
+The Decision Unit is controlled by a Finite State Machine (FSM), which manages the transitions between different operational states of the shuttle:
+
 - **States**: Idle, Driving to Pickup, Boarding, Driving to Drop-off, Deboarding, Parking.
-- **Transitions**: Each state transitions to another based on specific conditions such as `booking_request`, `goal_reached`, and `door_open`.
+- **Transitions**: Each state transitions to another based on specific conditions such as `booking_request`, `goal_reached`, `door_open`, and `booking_cancelled`.
 
 ### Transition Logic
+
 The FSM transitions between states when the specified conditions are met:
+
 - Transition from **Idle** to **Driving to Pickup** occurs when a booking request is received (`/booking_request = True`).
 - Transition from **Driving to Pickup** to **Boarding** occurs when the vehicle reaches the pickup location (`/goal_reached = True`).
 - Transition from **Boarding** to **Driving to Drop-off** occurs when the doors are closed (`/door_open = False`).
@@ -99,6 +108,10 @@ The FSM transitions between states when the specified conditions are met:
 - Transition from **Deboarding** to **Parking** occurs when the doors are closed after deboarding (`/door_open = False`).
 - Transition from **Parking** to **Idle** occurs when the parking goal is reached (`/goal_reached = True`).
 
+#### Additional Transition Cases
+
+- Transition from **Deboarding** to **Driving to Pickup** occurs when a new booking request is received during the deboarding phase (`/booking_request = True`). This allows the shuttle to immediately proceed to the next passenger without returning to idle.
+- Transition from **Driving to Pickup** to **Parking** occurs when a booking cancellation message is received (`/booking_cancelled = True`), ensuring the shuttle safely exits the pickup process and moves to the parking state.
 ## Dependencies
 
 1.[vx_motion_executor](https://git.hs-coburg.de/voyagex/vx_motion_executor)
